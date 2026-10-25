@@ -17,7 +17,7 @@ library(dplyr)
     
     # Volume (m3) 
     track_volume <- road_length_m * road_width_m * disturbance_depth_m
-    # Mass (kg = 体積 (m3) × かさ密度 (kg/m3))
+    # Mass (kg = Volume (m3) × Bulk_density (kg/m3))
     mean_bd <- mean_bulk_density_0_50 <- mean(bulk_density$`bd_kg/m3`)
     track_weight <- total_volume_m3 * mean_bd
     track_weight_t <- track__weight / 1000
