@@ -4,6 +4,17 @@ library(readxl)
 
 # Read the data
 discharge <- Water_quality_discharge
+names(discharge)
+
+# Q95 
+site_flows <- discharge %>%
+  group_by(site_no)%>%
+  summarise(
+    site_discharge_m3s = first(
+      na.omit(site_discharge_m3s))) %>% 
+  ungroup()
+
+print(site_flows)
 
 # Rename columns for easier use
 discharge <- discharge %>%
