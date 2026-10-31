@@ -6,21 +6,27 @@ library(readxl)
 discharge <- Water_quality_discharge
 names(discharge)
 
-# Q95 
-site_flows <- discharge %>%
-  group_by(site_no)%>%
-  summarise(
-    site_discharge_m3s = first(
-      na.omit(site_discharge_m3s))) %>% 
-  ungroup()
+# Q-baseline 
+Abhainn_flow <- discharge %>% 
+  filter(site_no %in% c("A1", "A2", "A3", "A4")) %>%         # Extracting only sites on Abhainn River
+  summarise(mean_discharge = mean(`site_discharge_ms3s-1`, na.rm = TRUE)) # Mean
+print(Abhainn_flow)
 
-print(site_flows)
+# Q-95
+Abhainn_q95 <- discharge %>% 
+  filter(site_no %in% c("A1", "A2", "A3", "A4")) %>% 
+  summarise(Q95 = quantile(`site_discharge_ms3s-1`, probs = 0.05, na.rm = TRUE)) 
+print(Abhainn_q95)
+
+
+# --- この先今のところ未使用
+
 
 # Rename columns for easier use
 discharge <- discharge %>%
   rename(
     flow_ms = `flow_ms-1`,
-    sub_discharge_m3s = `sub_discharge_m3s-1`,
+    sub_discharge_m3s = `site_discharge_m3s-1`,
     site_discharge_m3s = `site_discharge_ms3s-1`)
 
 

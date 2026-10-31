@@ -1,13 +1,14 @@
 library(dplyr)
+library(readxl)
 
 # 1. Data loading & cleaning
-    library(readxl)
-    PEIA_soil_data_compiled <- read_excel("PEIA_soil_data_compiled.xlsx")
+    PEIA_soil_data_compiled <- read_excel("data/PEIA_soil_data_compiled.xlsx")
     View(PEIA_soil_data_compiled)
     bulk_density <- PEIA_soil_data_compiled %>%
       rename(`bd_kg/m3` = `bulk_density_kg/cm3`)
+    glimpse(bulk_density)
 
-# 2. Track(1000m * 4m) 
+# 2. Access Track(1000m * 4m) 
     road_length_m <- 1000       
     road_width_m <- 4           
     disturbance_depth_m <- 0.5  
@@ -15,57 +16,46 @@ library(dplyr)
     forest_carbon_fraction <- 0.045
     peat_carbon_fraction <- 0.55
     
-    # Volume (m3) 
-    track_volume <- road_length_m * road_width_m * disturbance_depth_m
+    # Volume
+    tarack_area <- road_length_m * road_width_m #m2
+    track_volume <- road_length_m * road_width_m * disturbance_depth_m # m3
+    
+    # Mixed broadleaf mean bulk density 
+    mb_bd <- bulk_density %>% 
+      filter(Ecosystem == "Mixed broadleaf") %>% 
+      summarise(mean_bd = mean(`bd_kg/m3`, na.rm = TRUE)) %>% 
+      pull(mean_bd)
     # Mass (kg = Volume (m3) × Bulk_density (kg/m3))
-    mean_bd <- mean_bulk_density_0_50 <- mean(bulk_density$`bd_kg/m3`)
-    track_weight <- total_volume_m3 * mean_bd
-    track_weight_t <- track__weight / 1000
-
+    track_weight <- track_volume * mb_bd
+    track_weight_tonnes <- track_weight / 1000
+    print(track_weight_tonnes)
     
-# 3 Cleared ground Extracted soil (Mass)
-    soil_disturbance_t_per_ha <- 50
+# 3. Building Construction
+    soil_disturbance <- 50 # ton/ha
+    visitor_centre_area <- 350 # m2 
+    car_park_area <- 1000 # m2
+    turbine_soil_area <-50 #m2
+    restroom_soil_area <- 20 # m2
     
-    # Area
-    visitor_centre_area_m2 <- 350
-    car_park_area_m2 <- 1000
-    turbine_soil_t_area_m2 <-50
-    restroom_soil_t_area_m2<- 20
+    # Total construction area (ha)
+    total_facilities_area_ha <- (visitor_centre_area + car_park_area + turbine_soil_area + restroom_soil_area) / 10000
     
-    # Mass (t)
-    visitor_centre_soil_t <-
-      visitor_centre_area_m2 / 10000 *
-      soil_disturbance_t_per_ha
+# 4. Total construction disturbance (tonnes) (土壌撹乱量)
+    total_construction_weight_tonnes <- total_facilities_area_ha * soil_disturbance_t_per_ha
     
-    car_park_soil_t <-
-      car_park_area_m2 / 10000 *
-      soil_disturbance_t_per_ha
+# 5.Soil discharge to river (河川への土壌流入量)
+    track_soil_loss <- track_weight_tonnes * inflow_rate
+    construction_soil_loss <- total_construction_weight_tonnes * inflow_rate 
     
-    Turbine_soil_t <-
-    turbine_soil_t_area_m2 / 10000 *
-      soil_disturbance_t_per_ha
+# 6. Soil Carbon (攪乱された土壌に含まれる全炭素量)
+    track_soil_carbon_t <- track_weight_tonnes * forest_carbon_fraction
+    ground_soil_carbon_t <- total_construction_weight_tonnes * forest_carbon_fraction
     
-    Restroom_soil_t <-
-    restroom_soil_t_area_m2 / 10000 *
-      soil_disturbance_t_per_ha
+# 7. Soil carbon discharge to river (河川への炭素流出量)
+    track_sediment_carbon_t <- track_soil_loss * forest_carbon_fraction 
+    ground_sediment_carbon_t <- construction_soil_loss * forest_carbon_fraction
     
-    # Total construction disturbance
-    ground_weight = visitor_centre_soil_t + car_park_soil_t + Turbine_soil_t + Restroom_soil_t
-
-# 4. Soil discharge to river
-    track_soil_loss_t <- track_weight * inflow_rate/ 1000 # ton conversion
-    ground_soil_loss_t <- ground_weight * inflow_rate 
-    
-# 5. Soil Carbon
-    track_soil_carbon_t <- track_weight_t* forest_carbon_fraction
-    ground_soil_carbon_t <- ground_weight * forest_carbon_fraction
-    
-# 6. Soil carbon discharge to river 
-    track_sediment_carbon_t <- track_weight_t * forest_carbon_fraction 
-    ground_sediment_carbon_t <- ground_weight * forest_carbon_fraction
-    
-
-# 7. Results
+# 8. Results
     results <- data.frame(
       Item = c(
         "Road disturbed soil (tonnes)",
@@ -78,16 +68,16 @@ library(dplyr)
         "Facilities sediment carbon (tonnes C)"
       ),
       Value = c(
-        track_weight_t,
-        track_soil_loss_t,
-        track_soil_carbon_t,
-        track_sediment_carbon_t,
-        ground_weight,
-        ground_soil_loss_t,
-        ground_soil_carbon_t,
-        ground_sediment_carbon_t
+        track_weight_tonnes,       # ロード攪乱土壌
+        track_soil_loss,           # ロード河川流入土壌
+        track_soil_carbon_t,       # ロード土壌炭素
+        track_sediment_carbon_t,   # ロード河川流入炭素 
+        total_construction_weight_tonnes, # 建物攪乱土壌
+        construction_soil_loss,    # 建物河川流入土壌
+        ground_soil_carbon_t,      # 建物土壌炭素
+        ground_sediment_carbon_t   # 建物河川流入炭素 
       )
     )
-
-    print(results)    
+    
+    print(results)
     

@@ -1,7 +1,7 @@
 library(tidyverse)
 library(readxl)
 
-plant_list <- biodiversity_data_standardised
+plant_list <- biodiversity_plantlist
 
 # Species Richness by site
 plant_sr <- plant_list %>%
@@ -32,6 +32,8 @@ print(invert_oc)
 # Conservation priority species - for determining receptor sensitivity
 # DAFOR + cross-reference with official threatened species lists !!
 plant_conservation <- plant_list %>%
+  filter 
+  
   filter(str_detect(notes, "(?i)rare|protected|threatened"))
 
 
