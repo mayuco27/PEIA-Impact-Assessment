@@ -88,6 +88,14 @@ glimpse(chemical)
     removal_eff_p <- 0.50
     
     # Per capita Load
+    # カフェ：40席 × 1日5回転 = 200 visitors/day スタッフ：5 people/day  合計：205 people/day
+    max_visitorstaff <- 205
+    min_visitorstaff <- 35 
+    flow_per_day <- 60   # L/人/日
+    n_per_day    <- 12   # g N/人/日
+    p_per_day    <- 3    # g P/人/日
+      
+    ## 旧式　british water standardのNは、アンモニア態窒素だったため、課題で用いられるN12g/capita/dayという仮定に対して完全にcomparableではない、純粋に比率を計算するのは危険なため
     # Staff (Day：Specified by the assessment, flow per day from British Water standard)
     staff_flow_per_day <- 60   # L/人/日
     staff_n_per_day    <- 12   # g N/人/日
@@ -99,13 +107,13 @@ glimpse(chemical)
     visitor_p_per_use    <- 1  # g P/回
   
   # Total wastewater amount
-    max_influent_flow <- (max_visitor * visitor_flow_per_use) + (n_staff * staff_flow_per_day) # L/day
-    max_influent_n    <- (max_visitor * visitor_n_per_use)    + (n_staff * staff_n_per_day)    # g/day
-    max_influent_p    <- (max_visitor * visitor_p_per_use)    + (n_staff * staff_p_per_day)    # g/day
+    max_influent_flow <- (max_visitorstaff * flow_per_day) # L/day
+    max_influent_n    <- (max_visitorstaff * n_per_day)      # g/day
+    max_influent_p    <- (max_visitorstaff * p_per_day)   # g/day
     
-    min_influent_flow <- (min_visitor * visitor_flow_per_use) + (n_staff * staff_flow_per_day) # L/day
-    min_influent_n    <- (min_visitor * visitor_n_per_use)    + (n_staff * staff_n_per_day)    # g/day
-    min_influent_p    <- (min_visitor * visitor_p_per_use)    + (n_staff * staff_p_per_day)    # g/day
+    min_influent_flow <- (min_visitor * flow_per_day) # L/day
+    min_influent_n    <- (min_visitor * n_per_day)    # g/day
+    min_influent_p    <- (min_visitor * p_per_day)    # g/day
     
   # Total wastewater inflow to river
     # equation: effluent = influent * (1 - removal_efficiency)
@@ -136,4 +144,5 @@ glimpse(chemical)
       最小放流濃度_mg_L = c(NA, min_conc_effluent_n, min_conc_effluent_p)
     )
   
-    view(results_table)  
+  
+    print(results_table)  
